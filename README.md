@@ -11,3 +11,14 @@ In the python project, create a file called `.env` and enter the following infor
 SPOTIPY_CLIENT_ID='xxx'
 SPOTIPY_CLIENT_SECRET='xxx'
 ```
+
+## Required Packages
+
+Dotenv
+```pip install python-dotenv```
+
+OpenCV
+```pip install opencv-python```
+
+Pillow
+```pip install pillow```

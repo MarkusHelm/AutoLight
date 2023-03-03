@@ -2,6 +2,7 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 from dotenv import dotenv_values
 import urllib.request
+import os
 
 # .env file
 # ---------------------------
@@ -18,6 +19,9 @@ class Spotify:
         self.sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=env["SPOTIPY_CLIENT_ID"], client_secret=env["SPOTIPY_CLIENT_SECRET"], redirect_uri=SPOTIPY_REDIRECT_URI, scope=scope))
         self.results = None
         self.lastTrackId = ''
+        
+        if not os.path.exists('img'):
+            os.makedirs('img')
 
     def update(self):
         self.results = self.sp.current_user_playing_track()
