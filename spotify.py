@@ -16,19 +16,38 @@ class Spotify:
     def __init__(self):
         scope = "user-read-playback-state"
         self.sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=env["SPOTIPY_CLIENT_ID"], client_secret=env["SPOTIPY_CLIENT_SECRET"], redirect_uri=SPOTIPY_REDIRECT_URI, scope=scope))
-        self.track_title = "Waiting for fetch..."
-        self.track_cover_url = ""
-        self.track_artist = ""
+        self.results = None
+        self.lastTrackId = ''
 
-    def fetch(self):
-        results = self.sp.current_playback(market=None, additional_types=None)
+    def update(self):
+        self.results = self.sp.current_user_playing_track()
 
-        self.track_title = results['item']['name']
+        if self.results is None:
+            return None
 
-        self.track_cover_url = results['item']['album']['images'][1]['url']
-        urllib.request.urlretrieve(self.track_cover_url, "img/cover.png")
+        if self.getTrackId() != self.lastTrackId:
+            self.lastTrackId = self.getTrackId()
+            print("New Song:", self.getTrackName())
+            urllib.request.urlretrieve(self.getCoverUrl(), "img/cover.png")
+            return True
+        
+        return False
 
+    def getTrackId(self) -> str:
+        if self.results is None: return ''
+        return self.results["item"]["id"]
+
+    def getTrackName(self) -> str:
+        if self.results is None: return ''
+        return self.results["item"]["name"]
+    
+    def getArtists(self) -> str:
+        if self.results is None: return ''
         artist_names = []
-        for artist in results['item']['artists']:
+        for artist in self.results['item']['artists']:
             artist_names.append(artist['name'])
-        self.track_artist = ", ".join(artist_names)
+        return ", ".join(artist_names)
+    
+    def getCoverUrl(self) -> str:
+        if self.results is None: return ''
+        return self.results['item']['album']['images'][1]['url']

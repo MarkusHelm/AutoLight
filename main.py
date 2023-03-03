@@ -3,6 +3,8 @@ import tkinter as tk
 import spotify
 sp = spotify.Spotify()
 
+import time
+
 import color
 
 from PIL import Image, ImageTk
@@ -53,18 +55,28 @@ class Window:
         btn_fetch["command"] = self.btn_fetch_command
 
     def btn_fetch_command(self):
-        sp.fetch()
-        self.lbl_track_title["text"] = sp.track_title
-        self.lbl_track_artists["text"] = sp.track_artist
+        if sp.update() is None: return
+
+        self.lbl_track_title["text"] = sp.getTrackName()
+        self.lbl_track_artists["text"] = sp.getArtists()
+
         self.track_cover = ImageTk.PhotoImage(Image.open("img/cover.png"))
         self.lbl_track_cover["image"] = self.track_cover
-        colorPalette = color.getPaletteSatHex('img/cover.png',4)
-        self.lbl_color_0["bg"] = colorPalette[0]
-        self.lbl_color_1["bg"] = colorPalette[1]
-        self.lbl_color_2["bg"] = colorPalette[2]
-        self.lbl_color_3["bg"] = colorPalette[3]
+        
+        cols = color.getColorList()
+        self.lbl_color_0["bg"] = color.getHex(cols, 1)
+        self.lbl_color_1["bg"] = color.getHex(cols, 2)
+        #self.lbl_color_2["bg"] = color2.getHex(cols, 3)
+        #self.lbl_color_3["bg"] = color2.getHex(cols, 4)
+
+def fetchSpotify():
+    root.after(1000, fetchSpotify)
+    if sp.update() == True:
+        app.btn_fetch_command()
+    
 
 if __name__ == "__main__":
     root = tk.Tk()
     app = Window(root)
+    fetchSpotify()
     root.mainloop()
