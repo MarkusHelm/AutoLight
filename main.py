@@ -3,16 +3,17 @@ import tkinter as tk
 import spotify
 sp = spotify.Spotify()
 
-import time
-
 import color
+import midi
 
 from PIL import Image, ImageTk
+
+colors = [[],[]]
 
 class Window:
     def __init__(self, root):
         #setting title
-        root.title("undefined")
+        root.title("AutoLight")
         #setting window size
         width=380
         height=380
@@ -63,20 +64,25 @@ class Window:
         self.track_cover = ImageTk.PhotoImage(Image.open("img/cover.png"))
         self.lbl_track_cover["image"] = self.track_cover
         
-        cols = color.getColorList()
-        self.lbl_color_0["bg"] = color.getHex(cols, 1)
-        self.lbl_color_1["bg"] = color.getHex(cols, 2)
-        #self.lbl_color_2["bg"] = color2.getHex(cols, 3)
-        #self.lbl_color_3["bg"] = color2.getHex(cols, 4)
+        self.lbl_color_0["bg"] = colors[0][2]
+        self.lbl_color_1["bg"] = colors[1][2]
 
 def fetchSpotify():
     root.after(1000, fetchSpotify)
     if sp.update() == True:
+        global colors
+        colorsNew = color.getColors()
+        if colorsNew[0] != colors[0]:
+            midi.send(colorsNew[0][0],False)
+        if colorsNew[1] != colors[1]:
+            midi.send(colorsNew[1][0],True)
+        colors = colorsNew
         app.btn_fetch_command()
     
 
 if __name__ == "__main__":
     root = tk.Tk()
     app = Window(root)
+    midi = midi.Midi()
     fetchSpotify()
     root.mainloop()

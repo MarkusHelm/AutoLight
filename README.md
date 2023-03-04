@@ -17,8 +17,14 @@ SPOTIPY_CLIENT_SECRET='xxx'
 Dotenv
 ```pip install python-dotenv```
 
+Mido
+```pip install mido```
+
 OpenCV
 ```pip install opencv-python```
 
 Pillow
 ```pip install pillow```
+
+Spotipy
+```pip install spotipy```

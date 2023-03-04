@@ -33,6 +33,7 @@ class Spotify:
             self.lastTrackId = self.getTrackId()
             print("New Song:", self.getTrackName())
             urllib.request.urlretrieve(self.getCoverUrl(), "img/cover.png")
+            urllib.request.urlretrieve(self.getCoverUrl(small=True), "img/cover_small.png")
             return True
         
         return False
@@ -52,6 +53,10 @@ class Spotify:
             artist_names.append(artist['name'])
         return ", ".join(artist_names)
     
-    def getCoverUrl(self) -> str:
+    def getCoverUrl(self, small=False) -> str:
         if self.results is None: return ''
-        return self.results['item']['album']['images'][1]['url']
+        if small == True:
+            return self.results['item']['album']['images'][2]['url']
+        else:
+            return self.results['item']['album']['images'][1]['url']
+    
