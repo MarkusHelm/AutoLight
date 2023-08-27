@@ -14,4 +14,4 @@ SPOTIPY_CLIENT_SECRET='xxx'
 
 ## Required Packages
 
-```pip install python-dotenv mido opencv-python pillow spotipy```
+```pip install python-dotenv mido opencv-python pillow spotipy python-rtmidi```
