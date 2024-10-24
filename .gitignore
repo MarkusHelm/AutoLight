@@ -1,4 +1,6 @@
-img/
+img/*
+!img/paused_light.png
+!img/paused_dark.png
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
