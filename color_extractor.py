@@ -4,6 +4,11 @@ from random import randrange
 from os import path as os_path
 
 class Color:
+    def __init__(self, id=-1, hue=0, hex="#000000"):
+        self.id = id
+        self.hue = hue
+        self.hex = hex
+
     id: int
     hue: int
     hex: str
@@ -12,8 +17,12 @@ class ColorExtractor:
     def __init__(self):
         self.AVAILABLE_HUES = [0, 30, 60, 120, 160, 200, 240, 270, 300]
         self.HUE_COUNT = len(self.AVAILABLE_HUES)
+        self.SCANNER_HUES = [0, 120, 240, -1]
+        self.SCANNER_WHITE_THRESHOLD = 5000
 
     def hue_to_hex(self, hue: int) -> str:
+        if hue < 0:
+            return "#FFFFFF"
         hue = hue % 360
         (r, g, b) = colorsys.hsv_to_rgb(hue/360, 1, 1)
         (r, g, b) = (int(r * 255), int(g * 255), int(b * 255))
@@ -27,8 +36,7 @@ class ColorExtractor:
     def find_closest_hue_id(self, hue: int) -> int:
         def circular_distance(a: int, b: int) -> int:
             return min(abs(a - b), 360 - abs(a - b))
-        
-        hue = hue % 360
+        hue %= 360
         closest_hue = min(self.AVAILABLE_HUES, key=lambda x:circular_distance(x, hue))
         return self.AVAILABLE_HUES.index(closest_hue)
 
@@ -45,7 +53,7 @@ class ColorExtractor:
         (h, s, v) = cv2.split(img_hsv)
         for iy, y in enumerate(h):
             for ix, x in enumerate(y):
-                closest_hue_id = self.find_closest_hue_id(x*2)
+                closest_hue_id = self.find_closest_hue_id(int(x)*2)
                 h[iy][ix] = self.AVAILABLE_HUES[closest_hue_id]*0.5
                 weight = int(0.0039 * v[iy][ix] * (s[iy][ix] if s[iy][ix] > 32 else 0))
                 collected_hues[closest_hue_id] += weight
@@ -59,8 +67,20 @@ class ColorExtractor:
         print(collected_hues)
         return collected_hues
 
-    def extract_2_colors(self, image_path: str) -> tuple[Color, Color]:
+    def extract_colors(self, image_path: str) -> tuple[Color, Color, Color]:
+        """primary color (0-8), secondary color (0-8), scanner color (0-3)"""
         collected_hues = self.collect_colors_from_image(image_path)
+
+        color_scanner = Color()
+
+        rgb_colors = [0] * 3
+        rgb_colors[0] = collected_hues[0]
+        rgb_colors[1] = collected_hues[3]
+        rgb_colors[2] = collected_hues[6]
+        if sum(rgb_colors) > self.SCANNER_WHITE_THRESHOLD:
+            color_scanner.id = rgb_colors.index(max(rgb_colors)) * 3
+        else:
+            color_scanner.id = self.HUE_COUNT # white
 
         color_1 = Color()
 
@@ -104,5 +124,44 @@ class ColorExtractor:
         color_2.hue = self.AVAILABLE_HUES[color_2.id]
         color_1.hex = self.hue_to_hex(color_1.hue)
         color_2.hex = self.hue_to_hex(color_2.hue)
+        if color_scanner.id >= self.HUE_COUNT:
+            color_scanner.hue = -1
+            color_scanner.hex = "#FFFFFF"
+        else:
+            color_scanner.hue = self.AVAILABLE_HUES[color_scanner.id]
+            color_scanner.hex = self.hue_to_hex(color_scanner.hue)
 
-        return [color_1, color_2]
+        return [color_1, color_2, color_scanner]
+    
+    def hue_to_string(self, hue: int) -> str:
+        if hue == 0:
+            return "red"
+        if hue == 30:
+            return "orange"
+        if hue == 60:
+            return "yellow"
+        if hue == 120:
+            return "green"
+        if hue == 160:
+            return "cyan"
+        if hue == 200:
+            return "aqua"
+        if hue == 240:
+            return "blue"
+        if hue == 270:
+            return "purple"
+        if hue == 300:
+            return "pink"
+        if hue == -1:
+            return "white"
+        else:
+            return "unknown"
+    
+def main():
+    colorex = ColorExtractor()
+    colors = colorex.extract_colors("img/cover_small.png")
+    for color in colors:
+        print(f"id: {color.id}, hue: {color.hue}, hex: {color.hex}, name: {colorex.hue_to_string(color.hue)}")
+
+if __name__ == "__main__":
+    main()
